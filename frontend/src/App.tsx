@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./styles.css";
+import { fetchRAGResults } from "./apiService";
 
 interface Message {
   role: "user" | "bot";
@@ -15,14 +16,16 @@ const App: React.FC = () => {
 
     setMessages((prev) => [...prev, { role: "user", content: input }]);
 
-    const botResponse = await mockApiCall(input);
-    setMessages((prev) => [...prev, { role: "bot", content: botResponse }]);
+    try {
+      const response = await fetchRAGResults(input);
+      const botResponse = response.results.map((result: any) => result.question).join("\n");
+      setMessages((prev) => [...prev, { role: "bot", content: botResponse }]);
+    } catch (error) {
+      console.error("Error fetching RAG results:", error);
+      setMessages((prev) => [...prev, { role: "bot", content: "Error fetching results." }]);
+    }
 
     setInput("");
-  };
-
-  const mockApiCall = async (query: string): Promise<string> => {
-    return `Response for: "${query}"`;
   };
 
   return (
