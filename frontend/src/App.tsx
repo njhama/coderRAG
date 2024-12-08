@@ -18,18 +18,30 @@ const App: React.FC = () => {
 
     try {
       const response = await fetchRAGResults(input);
-      const botResponse = response.results.map((result: any) => result.question).join("\n");
-      setMessages((prev) => [...prev, { role: "bot", content: botResponse }]);
+      const firstResult = response.results[0];
+      
+      if (firstResult) {
+        const botResponse = `Solution:\n${firstResult.solution_code}`;
+        setMessages((prev) => [...prev, { role: "bot", content: botResponse }]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          { role: "bot", content: "No results found." },
+        ]);
+      }
     } catch (error) {
       console.error("Error fetching RAG results:", error);
-      setMessages((prev) => [...prev, { role: "bot", content: "Error fetching results." }]);
+      setMessages((prev) => [
+        ...prev,
+        { role: "bot", content: "Error fetching results." },
+      ]);
     }
 
     setInput("");
   };
 
   return (
-    <div>
+    <div className="chat-app">
       <div className="chat-header">coderRAG</div>
 
       <div className="chat-container">
@@ -39,7 +51,11 @@ const App: React.FC = () => {
               key={index}
               className={`chat-message ${msg.role === "user" ? "user" : "bot"}`}
             >
-              {msg.content}
+              {msg.role === "bot" ? (
+                <pre>{msg.content}</pre>
+              ) : (
+                msg.content
+              )}
             </div>
           ))}
         </div>
